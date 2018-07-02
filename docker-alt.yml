@@ -1,0 +1,36 @@
+version: '3'
+services:
+  ros_master:
+    image: dillonwilson/turtlebot3-base:latest
+    command: /bin/bash -c "roscore"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == ros-cluster
+  
+  ros_commander:
+    image: dillonwilson/turtlebot3-base:latest
+    environment:
+      - "ROS_HOSTNAME=ros_commander"
+      - "ROS_MASTER_URI=http://ros_master:11311"
+      - "TURTLEBOT3_MODEL=burger"
+    command: /bin/bash -c "source /root/catkin_ws/devel/setup.bash && tail -F anything"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == ros-cluster
+
+  ros_bot-spinner:
+    image: dillonwilson/turtlebot3-base:latest
+    command: /bin/bash -c "tail -F anything"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == turtlebot-ros
+    
+
+
+networks:
+  default:
+    external:
+      name: ros-overlay-network

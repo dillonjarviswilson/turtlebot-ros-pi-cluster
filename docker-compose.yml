@@ -1,0 +1,76 @@
+version: '3'
+services:
+  ros_master:
+    image: dillonwilson/turtlebot3-base:latest
+    command: roscore
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+  
+  ros_listener:
+    image: dillonwilson/turtlebot3-base:latest
+    environment:
+      - "ROS_HOSTNAME=listener"
+      - "ROS_MASTER_URI=http://ros_master:11311"
+    command: rosrun rospy_tutorials listener.py
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+  
+  ros_talker:
+    image: dillonwilson/turtlebot3-base:latest
+    environment:
+      - "ROS_HOSTNAME=talker"
+      - "ROS_MASTER_URI=http://ros_master:11311"
+    command: rosrun rospy_tutorials talker.py
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+  
+  ros_client:
+    image: dillonwilson/turtlebot3-base:latest
+    environment:
+      - "ROS_HOSTNAME=client"
+      - "ROS_MASTER_URI=http://ros_master:11311"
+    command: /bin/bash
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  default:
+    external:
+      name: ros-overlay-network
+
+
+
+
+
+      ros_bot:
+    image: dillonwilson/turtlebot3-base:latest
+    environment:
+      - "ROS_HOSTNAME=ros_master"
+      - "ROS_MASTER_URI=http://ros_master:11311"
+      - TURTLEBOT3_MODEL =burger
+    command: /bin/bash -c "roslaunch turtlebot3_bringup turtlebot3_robot.launch"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == turtlebot-ros
+  
+
+  ros_bot:
+      image: dillonwilson/turtlebot3-base:latest
+      environment:
+        - "ROS_HOSTNAME=ros_bot"
+        - "ROS_MASTER_URI=http://ros_master:11311"
+        - "TURTLEBOT3_MODEL=burger"
+      command: /bin/bash -c "source devel/setup.bash && roslaunch turtlebot3_bringup turtlebot3_robot.launch"
+      deploy:
+        placement:
+          constraints:
+            - node.hostname == turtlebot-ros
